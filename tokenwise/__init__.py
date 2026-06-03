@@ -1,6 +1,7 @@
 """TokenWise SDK -- instrumented pass-through plus local eval foundation."""
 
 from .client import TokenWise
+from .cache import CacheEntry, ExactCacheStore, exact_cache_key
 from .eval import (
     EvaluationManager,
     QualityScore,
@@ -23,6 +24,9 @@ __version__ = "0.0.1"
 
 __all__ = [
     "TokenWise",
+    "CacheEntry",
+    "ExactCacheStore",
+    "exact_cache_key",
     "EvaluationManager",
     "QualityScore",
     "QualityScorer",

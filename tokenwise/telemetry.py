@@ -9,7 +9,7 @@ forcing a migration.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from time import time
 
 from .canonical import TokenUsage
@@ -40,13 +40,17 @@ class SavingsReport:
     by_model: dict
     avg_overhead_ms: float
     estimated_usage_calls: int
+    cache_hits: int = 0
+    cache_hit_rate: float = 0.0
 
     def __str__(self) -> str:
-        pct = (100.0 * self.total_saved_tokens / self.total_tokens) if self.total_tokens else 0.0
+        baseline = self.total_tokens + self.total_saved_tokens
+        pct = (100.0 * self.total_saved_tokens / baseline) if baseline else 0.0
         return (
             f"TokenWise savings: {self.calls} calls, "
             f"{self.total_tokens} tokens, "
             f"{self.total_saved_tokens} saved ({pct:.1f}%), "
+            f"{self.cache_hits} cache hits ({self.cache_hit_rate:.1f}%), "
             f"avg overhead {self.avg_overhead_ms:.2f}ms"
         )
 
@@ -93,6 +97,7 @@ class TelemetryStore:
             m["tokens"] += r.usage.total_tokens or 0
         avg_overhead = (sum(r.overhead_ms for r in recs) / len(recs)) if recs else 0.0
         est_calls = sum(1 for r in recs if r.usage.source == "estimated")
+        cache_hits = sum(1 for r in recs if r.cache_hit)
 
         return SavingsReport(
             calls=len(recs),
@@ -101,6 +106,8 @@ class TelemetryStore:
             by_model=by_model,
             avg_overhead_ms=round(avg_overhead, 4),
             estimated_usage_calls=est_calls,
+            cache_hits=cache_hits,
+            cache_hit_rate=round(100.0 * cache_hits / len(recs), 4) if recs else 0.0,
         )
 
 

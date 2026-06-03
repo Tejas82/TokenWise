@@ -159,7 +159,7 @@ def test_budget_exhaustion_skips_later_stages():
 def test_savings_totals_match_provider_usage():
     client = FakeOpenAIClient()
     client.next_response = FakeResponse(usage=FakeUsage(7, 3, 10))
-    tw = TokenWise(client)
+    tw = TokenWise(client, policy={"stages": {"cache": {"enabled": False}}})
     for _ in range(3):
         tw.chat(model="gpt-4o-mini",
                 messages=[{"role": "user", "content": "hi"}])
@@ -186,7 +186,13 @@ def test_all_presets_load():
     for name in ("conservative", "balanced", "aggressive"):
         p = load_policy(name)
         assert p.name == name
-        assert all(not cfg["enabled"] for cfg in p.stages.values())
+        assert p.stages["cache"]["enabled"] is True
+        assert p.stages["cache"]["ttl"] == 3600
+        assert all(
+            not cfg["enabled"]
+            for stage, cfg in p.stages.items()
+            if stage != "cache"
+        )
 
 
 def test_per_call_override_merges():

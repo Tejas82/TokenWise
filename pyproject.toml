@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "tokenwise"
 version = "0.0.1"
-description = "Token-optimization SDK that wraps an LLM client to reduce token spend while preserving quality. Phase 0: instrumented pass-through."
+description = "Token-optimization SDK that wraps an LLM client with metadata-only telemetry, shadow eval, and exact-match caching."
 requires-python = ">=3.10"
 readme = "README.md"
 license = { text = "Proprietary" }

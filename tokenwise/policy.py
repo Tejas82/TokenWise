@@ -1,9 +1,8 @@
 """Policy scaffold.
 
-Phase 0 ships three presets with all optimization stages disabled. The machinery
-(load, deep-merge override, validate) is fully exercised so later phases only flip
-stages on. Invalid policy is the one failure raised to the caller, before any
-provider call -- it is a developer config mistake, not a runtime fault to swallow.
+Phase 2 ships exact-match cache as the first enabled optimization. Invalid policy
+is the one failure raised to the caller, before any provider call -- it is a
+developer config mistake, not a runtime fault to swallow.
 """
 
 from __future__ import annotations
@@ -33,11 +32,15 @@ class Policy:
             raise ConfigError(
                 f"fail_mode {self.fail_mode!r} not supported (Phase 0 supports 'open')"
             )
+        cache_cfg = self.stages.get("cache", {})
+        ttl = cache_cfg.get("ttl")
+        if ttl is not None and (not isinstance(ttl, int) or ttl <= 0):
+            raise ConfigError(f"cache ttl must be a positive int, got {ttl!r}")
 
 
 def _preset(name: str) -> Policy:
     base_stages = {
-        "cache": {"enabled": False},
+        "cache": {"enabled": True, "ttl": 3600, "namespace": "default"},
         "context_pruning": {"enabled": False},
         "compression": {"enabled": False},
         "routing": {"enabled": False},

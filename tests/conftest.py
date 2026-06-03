@@ -44,6 +44,7 @@ class _Completions:
 
     def create(self, **kwargs) -> FakeResponse:
         self._parent.last_call = kwargs
+        self._parent.calls.append(kwargs)
         self._parent.call_count += 1
         if self._parent.raise_on_call:
             raise RuntimeError("provider exploded")
@@ -62,6 +63,7 @@ class FakeOpenAIClient:
     def __init__(self) -> None:
         self.chat = _Chat(self)
         self.last_call: dict | None = None
+        self.calls: list[dict] = []
         self.call_count = 0
         self.raise_on_call = False
         self.next_response: FakeResponse | None = None
